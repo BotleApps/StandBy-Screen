@@ -10,12 +10,13 @@ interface CountdownDuration {
 
 interface StandbyCardProps {
   id: string;
-  title: string;
+  title: string; // Add title prop back
   countdownDuration: CountdownDuration; // Duration for the countdown timer
   category: string; // Category for the standby screen
   backgroundColor: string; // Background color for the card placeholder
 }
 
+// Add title back to destructuring props
 const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration, category, backgroundColor }) => {
   const navigate = useNavigate(); // Get navigate function
 
@@ -42,6 +43,7 @@ const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration,
         <MonitorPlay size={48} className="text-white opacity-75" /> {/* Adjusted icon color for better contrast */}
       </div>
       <div className="p-4 flex flex-col flex-grow">
+        {/* Restore title display */}
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-gray-800 mr-2">{title}</h3>
           {/* Display Category */}

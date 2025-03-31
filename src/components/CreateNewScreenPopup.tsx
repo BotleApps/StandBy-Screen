@@ -6,11 +6,14 @@ interface CountdownDuration {
   seconds: number;
 }
 
+// Interface for the data submitted from the form (includes both title and welcomeMessage)
 interface StandbyScreenDetails {
-  title: string;
+  title: string; // Title for the card/list view
+  welcomeMessage: string; // Message for the detail screen
   countdownDuration: CountdownDuration;
   category: string;
   backgroundColor: string;
+  newsCategory?: string; // Add optional news category
 }
 
 interface CreateNewScreenPopupProps {
@@ -19,17 +22,20 @@ interface CreateNewScreenPopupProps {
 }
 
 const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, onSubmit }) => {
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(''); // Add title state back
+  const [welcomeMessage, setWelcomeMessage] = useState('Thank you for joining, please stay tuned!'); // Default welcome message
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(15); // Default to 15 minutes
   const [seconds, setSeconds] = useState(0);
   const [category, setCategory] = useState('');
   const [backgroundColor, setBackgroundColor] = useState('#4f46e5'); // Default to indigo
+  const [newsCategory, setNewsCategory] = useState(''); // Add state for news category
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      title,
+      title, // Include title
+      welcomeMessage,
       countdownDuration: {
         hours: Number(hours) || 0,
         minutes: Number(minutes) || 0,
@@ -37,6 +43,7 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
       },
       category,
       backgroundColor,
+      newsCategory: newsCategory || undefined, // Pass news category (or undefined if empty)
     });
     // No need to call onClose here, the parent component's handleSubmit will do it
   };
@@ -48,13 +55,26 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
         <form onSubmit={handleSubmit}>
           {/* Title */}
           <div className="mb-4">
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title (for list view)</label>
             <input
               id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            />
+          </div>
+
+          {/* Welcome Message */}
+          <div className="mb-4">
+            <label htmlFor="welcomeMessage" className="block text-sm font-medium text-gray-700">Welcome Message (for detail view)</label>
+            <textarea
+              id="welcomeMessage"
+              value={welcomeMessage}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              rows={3}
               required
             />
           </div>
@@ -112,6 +132,20 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
+          </div>
+
+          {/* News Category (Optional) */}
+          <div className="mb-4">
+            <label htmlFor="newsCategory" className="block text-sm font-medium text-gray-700">News Category/Source (Optional)</label>
+            <input
+              id="newsCategory"
+              type="text"
+              value={newsCategory}
+              onChange={(e) => setNewsCategory(e.target.value)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="e.g., Technology, Business, BBC"
+            />
+             <p className="mt-1 text-xs text-gray-500">Leave blank if no news is desired.</p>
           </div>
 
           {/* Background Color */}

@@ -9,15 +9,18 @@ interface CountdownDuration {
 
 // Interface for the data submitted from the form
 interface StandbyScreenDetails {
-  title: string;
+  title: string; // Add title back
+  welcomeMessage: string;
   countdownDuration: CountdownDuration;
   category: string;
   backgroundColor: string;
+  newsCategory?: string; // Optional field for news category/source
 }
 
 // Interface for the data stored in localStorage (includes id)
 export interface StoredStandbyScreen extends StandbyScreenDetails {
   id: string;
+  // newsCategory is inherited from StandbyScreenDetails
 }
 
 const STORAGE_KEY = 'standbyScreens';
@@ -85,6 +88,18 @@ export const deleteStandbyScreen = (id: string): StoredStandbyScreen[] => {
 export const getStandbyScreenById = (id: string): StoredStandbyScreen | undefined => {
     const screens = getStandbyScreens();
     return screens.find(screen => screen.id === id);
+};
+
+/**
+ * Clears all standby screens from localStorage.
+ */
+export const clearStandbyScreens = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('Standby screens cleared from localStorage.');
+    } catch (error) {
+        console.error("Error clearing standby screens from localStorage:", error);
+    }
 };
 
 // Optional: Add updateStandbyScreen function if needed later

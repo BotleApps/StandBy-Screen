@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Slider from 'react-slick'; // Re-import Slider
 import { ArrowLeft, Maximize, Minimize, AlertCircle } from 'lucide-react';
 import { getStandbyScreenById, StoredStandbyScreen } from '../storage/standbyStorage';
-import NewsCard from '../components/NewsCard'; // Re-import NewsCard
+// Removed NewsCard import as it's not used directly here anymore
 
 // Helper function to format time
 const formatTime = (timeInSeconds: number): string => {
@@ -119,14 +119,11 @@ const DetailScreen: React.FC = () => {
 
       {/* Top Section (35%) - Restore original structure */}
       <div className="basis-0 grow-[7] flex flex-col items-center justify-center bg-gray-100 p-4 pt-16">
-        {/* Welcome Message / Title */}
+        {/* Welcome Message */}
         <div className="mb-10 text-center">
-          {/* Display fetched title */}
-          <h1 className="text-3xl font-semibold text-gray-800">{screenData.title || 'Session Starting Soon'}</h1>
-           {/* Optionally display category */}
-           {screenData.category && (
-            <p className="text-lg mt-2 text-gray-600">{screenData.category}</p>
-          )}
+          {/* Display fetched welcome message */}
+          <h1 className="text-3xl font-semibold text-gray-800">{screenData.welcomeMessage || 'Session Starting Soon'}</h1>
+           {/* Category display removed */}
         </div>
         {/* Countdown Timer */}
         <div className="text-center">
@@ -138,63 +135,27 @@ const DetailScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section - Carousel (65%) - Restore original structure */}
-      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden">
-        <NewsCarousel /> {/* Restore NewsCarousel */}
+      {/* Bottom Section (65%) - Conditionally display News or Placeholder */}
+      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden flex items-center justify-center">
+        {screenData.newsCategory ? (
+          // Placeholder for News Content
+          <div className="text-center text-gray-600">
+            <h3 className="text-xl font-semibold mb-2">News Section</h3>
+            <p>News related to category: <span className="font-medium">{screenData.newsCategory}</span></p>
+            <p className="text-sm mt-1">(News fetching and display to be implemented)</p>
+            {/* Later, replace this div with actual news fetching and <NewsCard /> rendering */}
+          </div>
+        ) : (
+          // Placeholder if no news category is selected
+          <div className="text-center text-gray-500">
+            <p>No news configured for this screen.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Re-add NewsCarousel component and related types/data
-// Define the type for a single news item
-interface SampleNewsItem {
-  id: number;
-  title: string;
-  content: { type: 'text'; value: string } | { type: 'image'; value: string }; // Use the specific union type
-  date: string;
-  tags: string[];
-}
-
-// Sample News Data (replace with actual data source later)
-const sampleNews: SampleNewsItem[] = [ // Explicitly type the array
-  { id: 1, title: "New Feature Rollout", content: { type: 'text', value: "We're excited to announce the rollout of feature X, enhancing productivity across the board." }, date: "March 29, 2025", tags: ["Product", "Update"] },
-  { id: 2, title: "Q1 Earnings Report", content: { type: 'image', value: "https://via.placeholder.com/400x200.png?text=Q1+Results+Graph" }, date: "March 28, 2025", tags: ["Finance", "Company"] },
-  { id: 3, title: "Upcoming Maintenance", content: { type: 'text', value: "Scheduled maintenance on Sunday, April 2nd, from 2 AM to 4 AM UTC. Expect brief downtime." }, date: "March 27, 2025", tags: ["System", "Alert"] },
-  { id: 4, title: "Welcome New Hires!", content: { type: 'text', value: "Join us in welcoming Alice, Bob, and Charlie to the team!" }, date: "March 26, 2025", tags: ["People", "HR"] },
-];
-
-// Carousel Component
-const NewsCarousel: React.FC = () => {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,        // Enable autoplay
-    autoplaySpeed: 5000,   // Change slide every 5 seconds
-    pauseOnHover: true,    // Pause autoplay on hover
-    arrows: false,         // Hide default arrows (optional)
-    className: "h-full",   // Ensure slider takes full height of its container
-  };
-
-  return (
-    <div className="h-full w-[90%] mx-auto"> {/* Use 90% width and center */}
-      <Slider {...settings} className="h-full">
-        {sampleNews.map((news) => (
-          <div key={news.id} className="p-2 h-full"> {/* Added padding around each card */}
-            <NewsCard
-              title={news.title}
-              content={news.content}
-              date={news.date}
-              tags={news.tags}
-            />
-          </div>
-        ))}
-      </Slider>
-    </div>
-  );
-};
+// Removed NewsCarousel component and sample data
 
 export default DetailScreen;
