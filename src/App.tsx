@@ -8,7 +8,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeScreen />} />
-      <Route path="/detail" element={<DetailScreen />} /> {/* Add route for DetailScreen */}
+      {/* Update route to accept screenId parameter */}
+      <Route path="/detail/:screenId" element={<DetailScreen />} />
     </Routes>
   );
 }

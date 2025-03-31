@@ -61,9 +61,9 @@ const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration,
            <button
             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center transition-colors duration-200"
             title="View Screen"
-            onClick={() => navigate('/detail')} // Navigate to detail screen
+            onClick={() => navigate(`/detail/${id}`)} // Navigate to dynamic detail screen URL
           >
-            <MonitorPlay size={16} className="mr-1" /> View
+            <MonitorPlay size={16} className="mr-1" /> Start
           </button>
           <div className="flex space-x-2">
              <button

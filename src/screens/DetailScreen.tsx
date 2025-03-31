@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import Slider from 'react-slick';
-import { ArrowLeft, Maximize, Minimize } from 'lucide-react'; // Import icons
-import NewsCard from '../components/NewsCard'; // Import NewsCard
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Slider from 'react-slick'; // Re-import Slider
+import { ArrowLeft, Maximize, Minimize, AlertCircle } from 'lucide-react';
+import { getStandbyScreenById, StoredStandbyScreen } from '../storage/standbyStorage';
+import NewsCard from '../components/NewsCard'; // Re-import NewsCard
 
 // Helper function to format time
 const formatTime = (timeInSeconds: number): string => {
@@ -14,24 +15,35 @@ const formatTime = (timeInSeconds: number): string => {
 };
 
 const DetailScreen: React.FC = () => {
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
+  const { screenId } = useParams<{ screenId: string }>(); // Get screenId from URL params
+  const [screenData, setScreenData] = useState<StoredStandbyScreen | null | undefined>(undefined); // undefined: loading, null: not found
+  const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(!!document.fullscreenElement);
 
-  // Placeholder target time (e.g., 10 minutes from now)
-  // In a real app, this would come from props or route state based on the selected card
-  const [targetTime] = useState<Date>(() => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() + 10); // Set target 10 mins in the future
-    return now;
-  });
-
-  const [timeLeft, setTimeLeft] = useState<number>(() => {
-    const now = new Date();
-    return Math.max(0, Math.floor((targetTime.getTime() - now.getTime()) / 1000));
-  });
-
+  // Effect to fetch screen data based on screenId
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    if (screenId) {
+      const data = getStandbyScreenById(screenId);
+      setScreenData(data); // Set to data or null if not found
+      if (data) {
+        // Calculate initial time left in seconds
+        const initialSeconds = (data.countdownDuration.hours * 3600) +
+                               (data.countdownDuration.minutes * 60) +
+                               data.countdownDuration.seconds;
+        setTimeLeft(initialSeconds);
+      } else {
+        setTimeLeft(0); // Reset timer if screen not found
+      }
+    } else {
+      setScreenData(null); // No ID provided, set to not found
+      setTimeLeft(0);
+    }
+  }, [screenId]);
+
+  // Effect for the countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return; // Don't start interval if time is already 0
 
     const timerId = setInterval(() => {
       setTimeLeft((prevTime) => Math.max(0, prevTime - 1));
@@ -39,7 +51,7 @@ const DetailScreen: React.FC = () => {
 
     // Cleanup interval on component unmount or when timer reaches 0
     return () => clearInterval(timerId);
-  }, [timeLeft]); // Rerun effect if timeLeft changes (specifically when it hits 0)
+  }, [timeLeft]); // Rerun effect only when timeLeft changes
 
   // Fullscreen handling
   const toggleFullScreen = () => {
@@ -54,19 +66,40 @@ const DetailScreen: React.FC = () => {
     }
   };
 
-  // Listen for fullscreen changes to update state
+  // Listen for fullscreen changes
   useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
+    const handleFullScreenChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullScreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, []);
 
+  // Loading state
+  if (screenData === undefined) {
+    return <div className="flex items-center justify-center h-screen text-gray-600">Loading screen data...</div>;
+  }
 
+  // Not found state
+  if (!screenData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-red-600">
+        <AlertCircle size={48} className="mb-4" />
+        <h1 className="text-2xl font-semibold mb-2">Screen Not Found</h1>
+        <p className="mb-4">The requested standby screen could not be found.</p>
+        <button
+          onClick={() => navigate('/')}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        >
+          Back to Home
+        </button>
+      </div>
+    );
+  }
+
+  // Main content when data is loaded
   return (
-    <div className="flex flex-col h-screen relative"> {/* Added relative positioning for absolute children */}
-      {/* Back Button */}
+    // Restore original main div without dynamic background
+    <div className="flex flex-col h-screen relative">
+      {/* Back Button (remains the same) */}
       <button
         onClick={() => navigate('/')}
         className="absolute top-4 left-4 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
@@ -75,7 +108,7 @@ const DetailScreen: React.FC = () => {
         <ArrowLeft size={24} />
       </button>
 
-      {/* Full Screen Button */}
+      {/* Full Screen Button (remains the same) */}
       <button
         onClick={toggleFullScreen}
         className="absolute top-4 right-4 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
@@ -84,29 +117,36 @@ const DetailScreen: React.FC = () => {
         {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
       </button>
 
-      {/* Top Section (35%) */}
-      <div className="basis-0 grow-[7] flex flex-col items-center justify-center bg-gray-100 p-4 pt-16"> {/* Use grow-[7] for ~35%, added basis-0 */}
-        {/* Welcome Message */}
-        <div className="mb-10 text-center"> {/* Increased margin bottom */}
-          <h1 className="text-3xl font-semibold text-gray-800">Thank you for joining the session, please stay tuned!</h1> {/* Increased font size */}
+      {/* Top Section (35%) - Restore original structure */}
+      <div className="basis-0 grow-[7] flex flex-col items-center justify-center bg-gray-100 p-4 pt-16">
+        {/* Welcome Message / Title */}
+        <div className="mb-10 text-center">
+          {/* Display fetched title */}
+          <h1 className="text-3xl font-semibold text-gray-800">{screenData.title || 'Session Starting Soon'}</h1>
+           {/* Optionally display category */}
+           {screenData.category && (
+            <p className="text-lg mt-2 text-gray-600">{screenData.category}</p>
+          )}
         </div>
         {/* Countdown Timer */}
         <div className="text-center">
-          <p className="text-xl mb-3 text-gray-600">We will start in</p> {/* Increased font size and margin bottom */}
-          <div className="text-8xl font-bold tabular-nums text-gray-900"> {/* Increased font size, tabular-nums prevents width changes */}
+          <p className="text-xl mb-3 text-gray-600">We will start in</p>
+          <div className="text-8xl font-bold tabular-nums text-gray-900">
+            {/* Use timeLeft state derived from fetched data */}
             {formatTime(timeLeft)}
           </div>
         </div>
       </div>
 
-      {/* Bottom Section - Carousel (65%) */}
-      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden"> {/* Use grow-[13] for ~65%, added basis-0 */}
-        <NewsCarousel />
+      {/* Bottom Section - Carousel (65%) - Restore original structure */}
+      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden">
+        <NewsCarousel /> {/* Restore NewsCarousel */}
       </div>
     </div>
   );
 };
 
+// Re-add NewsCarousel component and related types/data
 // Define the type for a single news item
 interface SampleNewsItem {
   id: number;
@@ -156,6 +196,5 @@ const NewsCarousel: React.FC = () => {
     </div>
   );
 };
-
 
 export default DetailScreen;

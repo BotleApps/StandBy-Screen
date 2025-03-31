@@ -25,16 +25,21 @@ const NewsCard: React.FC<NewsCardProps> = ({ title, content, date, tags }) => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
-        <div className="flex justify-between items-center text-sm text-gray-500">
+      <div className="p-4 border-t border-gray-200 mt-auto flex flex-col">
+        <div className="flex justify-between items-center text-sm text-gray-500 flex-grow">
           <span>{date}</span>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 flex-grow">
             {tags.map((tag, index) => (
               <span key={index} className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
                 {tag}
               </span>
             ))}
-          </div>
+          <div className="flex items-center mt-auto">
+  <span className="text-gray-500">Duration:</span>
+  <span className="ml-1 text-gray-700">Icon</span>
+  <span className="ml-1 text-gray-700">Duration Value</span>
+</div>
+</div>
         </div>
       </div>
     </div>
