@@ -16,7 +16,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ title, content, date, tags }) => {
       </div>
 
       {/* Body */}
-      <div className="p-4 flex-grow">
+      <div className="p-4 flex-grow min-h-0"> {/* Added min-h-0 */}
         {content.type === 'text' ? (
           <p className="text-gray-600">{content.value}</p>
         ) : (

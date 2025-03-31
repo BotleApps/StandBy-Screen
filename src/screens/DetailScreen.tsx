@@ -84,23 +84,23 @@ const DetailScreen: React.FC = () => {
         {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
       </button>
 
-      {/* Top Half */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-100 p-4 pt-16"> {/* Added top padding to avoid overlap */}
+      {/* Top Section (35%) */}
+      <div className="basis-0 grow-[7] flex flex-col items-center justify-center bg-gray-100 p-4 pt-16"> {/* Use grow-[7] for ~35%, added basis-0 */}
         {/* Welcome Message */}
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold">Thank you for joining the session, please stay tuned!</h1>
+        <div className="mb-10 text-center"> {/* Increased margin bottom */}
+          <h1 className="text-3xl font-semibold text-gray-800">Thank you for joining the session, please stay tuned!</h1> {/* Increased font size */}
         </div>
         {/* Countdown Timer */}
         <div className="text-center">
-          <p className="text-lg mb-2">We will start in</p>
-          <div className="text-6xl font-bold tabular-nums"> {/* tabular-nums prevents width changes */}
+          <p className="text-xl mb-3 text-gray-600">We will start in</p> {/* Increased font size and margin bottom */}
+          <div className="text-8xl font-bold tabular-nums text-gray-900"> {/* Increased font size, tabular-nums prevents width changes */}
             {formatTime(timeLeft)}
           </div>
         </div>
       </div>
 
-      {/* Bottom Half - Carousel */}
-      <div className="flex-1 bg-gray-200 p-4 overflow-hidden"> {/* Added overflow-hidden */}
+      {/* Bottom Section - Carousel (65%) */}
+      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden"> {/* Use grow-[13] for ~65%, added basis-0 */}
         <NewsCarousel />
       </div>
     </div>
@@ -140,7 +140,7 @@ const NewsCarousel: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full max-w-3xl mx-auto"> {/* Constrain width and center */}
+    <div className="h-full w-[90%] mx-auto"> {/* Use 90% width and center */}
       <Slider {...settings} className="h-full">
         {sampleNews.map((news) => (
           <div key={news.id} className="p-2 h-full"> {/* Added padding around each card */}
