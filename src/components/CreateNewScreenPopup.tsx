@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ManualNewsItemDetails } from '../storage/standbyStorage'; // Import the new type
+import { Plus, Trash2, Image as ImageIcon, Type as TextIcon } from 'lucide-react'; // Import icons
 
 interface CountdownDuration {
   hours: number;
@@ -13,7 +15,7 @@ interface StandbyScreenDetails {
   countdownDuration: CountdownDuration;
   category: string;
   backgroundColor: string;
-  newsCategory?: string; // Add optional news category
+  newsItems?: ManualNewsItemDetails[]; // Use newsItems array instead
 }
 
 interface CreateNewScreenPopupProps {
@@ -29,7 +31,15 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
   const [seconds, setSeconds] = useState(0);
   const [category, setCategory] = useState('');
   const [backgroundColor, setBackgroundColor] = useState('#4f46e5'); // Default to indigo
-  const [newsCategory, setNewsCategory] = useState(''); // Add state for news category
+  // const [newsCategory, setNewsCategory] = useState(''); // Remove unused state
+
+  // State for managing the list of manually added news items
+  const [newsItems, setNewsItems] = useState<ManualNewsItemDetails[]>([]);
+  // State for the current news item being added/edited in the sub-form
+  const [currentNewsTitle, setCurrentNewsTitle] = useState('');
+  const [currentNewsContentType, setCurrentNewsContentType] = useState<'text' | 'image'>('text');
+  const [currentNewsContentValue, setCurrentNewsContentValue] = useState('');
+  const [currentNewsTags, setCurrentNewsTags] = useState(''); // Comma-separated tags for input
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +53,36 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
       },
       category,
       backgroundColor,
-      newsCategory: newsCategory || undefined, // Pass news category (or undefined if empty)
+      newsItems: newsItems, // Pass the array of news items
     });
     // No need to call onClose here, the parent component's handleSubmit will do it
+  };
+
+  // Function to add the current news item details to the list
+  const handleAddNewsItem = () => {
+    if (!currentNewsTitle || !currentNewsContentValue) {
+      alert('Please fill in the news title and content.'); // Basic validation
+      return;
+    }
+    const newItem: ManualNewsItemDetails = {
+      title: currentNewsTitle,
+      content: {
+        type: currentNewsContentType,
+        value: currentNewsContentValue,
+      },
+      tags: currentNewsTags.split(',').map(tag => tag.trim()).filter(tag => tag), // Split and clean tags
+    };
+    setNewsItems([...newsItems, newItem]);
+    // Reset the sub-form fields
+    setCurrentNewsTitle('');
+    setCurrentNewsContentType('text');
+    setCurrentNewsContentValue('');
+    setCurrentNewsTags('');
+  };
+
+  // Function to remove a news item from the list by index
+  const handleRemoveNewsItem = (indexToRemove: number) => {
+    setNewsItems(newsItems.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -134,19 +171,98 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
             />
           </div>
 
-          {/* News Category (Optional) */}
-          <div className="mb-4">
-            <label htmlFor="newsCategory" className="block text-sm font-medium text-gray-700">News Category/Source (Optional)</label>
-            <input
-              id="newsCategory"
-              type="text"
-              value={newsCategory}
-              onChange={(e) => setNewsCategory(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="e.g., Technology, Business, BBC"
-            />
-             <p className="mt-1 text-xs text-gray-500">Leave blank if no news is desired.</p>
+          {/* --- News Items Section --- */}
+          <div className="mb-6 border-t border-gray-200 pt-4">
+            <h3 className="text-lg font-medium text-gray-800 mb-3">Add News Items (Optional)</h3>
+
+            {/* List of Added News Items */}
+            {newsItems.length > 0 && (
+              <div className="mb-4 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
+                <ul className="space-y-2">
+                  {newsItems.map((item, index) => (
+                    <li key={index} className="flex justify-between items-center text-sm p-1 bg-white rounded shadow-sm">
+                      <span className="truncate flex-1 mr-2">{item.title} ({item.content.type})</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewsItem(index)}
+                        className="p-1 text-red-500 hover:text-red-700"
+                        title="Remove Item"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Sub-form for adding a new news item */}
+            <div className="space-y-3 border border-gray-300 rounded-md p-3">
+              <h4 className="text-md font-medium text-gray-700">New News Item</h4>
+              <div>
+                <label htmlFor="newsTitle" className="block text-sm font-medium text-gray-700">News Title</label>
+                <input
+                  id="newsTitle"
+                  type="text"
+                  value={currentNewsTitle}
+                  onChange={(e) => setCurrentNewsTitle(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                />
+              </div>
+              <div>
+                 <label className="block text-sm font-medium text-gray-700">Content Type</label>
+                 <div className="mt-1 flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentNewsContentType('text')}
+                      className={`p-2 rounded border ${currentNewsContentType === 'text' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      <TextIcon size={18} />
+                    </button>
+                     <button
+                      type="button"
+                      onClick={() => setCurrentNewsContentType('image')}
+                      className={`p-2 rounded border ${currentNewsContentType === 'image' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      <ImageIcon size={18} />
+                    </button>
+                 </div>
+              </div>
+              <div>
+                <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
+                  {currentNewsContentType === 'text' ? 'News Content (Text)' : 'News Content (Image URL)'}
+                </label>
+                <input
+                  id="newsContent"
+                  type={currentNewsContentType === 'text' ? 'text' : 'url'}
+                  value={currentNewsContentValue}
+                  onChange={(e) => setCurrentNewsContentValue(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                  placeholder={currentNewsContentType === 'text' ? 'Enter news text...' : 'https://example.com/image.png'}
+                />
+              </div>
+               <div>
+                <label htmlFor="newsTags" className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+                <input
+                  id="newsTags"
+                  type="text"
+                  value={currentNewsTags}
+                  onChange={(e) => setCurrentNewsTags(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                  placeholder="e.g., Update, Product, Important"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddNewsItem}
+                className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                <Plus size={18} className="mr-1 -ml-1" />
+                Add News Item to List
+              </button>
+            </div>
           </div>
+          {/* --- End News Items Section --- */}
 
           {/* Background Color */}
           <div className="mb-4">

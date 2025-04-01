@@ -7,20 +7,33 @@ interface CountdownDuration {
   seconds: number;
 }
 
+// Interface for a single manually added news item (as submitted)
+export interface ManualNewsItemDetails {
+  title: string;
+  content: { type: 'text'; value: string } | { type: 'image'; value: string };
+  tags: string[]; // Array of strings for tags/categories
+}
+
+// Interface for a stored news item (includes system-generated fields)
+export interface StoredManualNewsItem extends ManualNewsItemDetails {
+  id: string; // Unique ID for the news item itself
+  createdAt: string; // ISO timestamp string
+}
+
 // Interface for the data submitted from the form
 interface StandbyScreenDetails {
-  title: string; // Add title back
+  title: string;
   welcomeMessage: string;
   countdownDuration: CountdownDuration;
   category: string;
   backgroundColor: string;
-  newsCategory?: string; // Optional field for news category/source
+  newsItems?: ManualNewsItemDetails[]; // Array of manually added news items
 }
 
-// Interface for the data stored in localStorage (includes id)
-export interface StoredStandbyScreen extends StandbyScreenDetails {
+// Interface for the data stored in localStorage (includes id and processed news items)
+export interface StoredStandbyScreen extends Omit<StandbyScreenDetails, 'newsItems'> {
   id: string;
-  // newsCategory is inherited from StandbyScreenDetails
+  newsItems?: StoredManualNewsItem[]; // Stored news items include id and createdAt
 }
 
 const STORAGE_KEY = 'standbyScreens';
@@ -58,14 +71,25 @@ const saveStandbyScreens = (screens: StoredStandbyScreen[]): void => {
 
 /**
  * Adds a new standby screen to localStorage.
- * Generates a unique ID for the new screen.
+ * Generates a unique ID for the new screen and its news items.
+ * Adds createdAt timestamp to news items.
  */
 export const addStandbyScreen = (screenDetails: StandbyScreenDetails): StoredStandbyScreen[] => {
   const screens = getStandbyScreens();
+
+  // Process news items: add id and createdAt timestamp
+  const processedNewsItems = screenDetails.newsItems?.map(item => ({
+    ...item,
+    id: uuidv4(), // Unique ID for each news item
+    createdAt: new Date().toISOString(), // Add timestamp
+  }));
+
   const newScreen: StoredStandbyScreen = {
     ...screenDetails,
-    id: uuidv4(), // Generate a unique ID
+    id: uuidv4(), // Generate a unique ID for the screen
+    newsItems: processedNewsItems, // Use the processed news items
   };
+
   const updatedScreens = [...screens, newScreen];
   saveStandbyScreens(updatedScreens);
   return updatedScreens; // Return the updated list

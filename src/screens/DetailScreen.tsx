@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Slider from 'react-slick'; // Re-import Slider
+import Slider from 'react-slick';
 import { ArrowLeft, Maximize, Minimize, AlertCircle } from 'lucide-react';
-import { getStandbyScreenById, StoredStandbyScreen } from '../storage/standbyStorage';
-// Removed NewsCard import as it's not used directly here anymore
+import { getStandbyScreenById, StoredStandbyScreen, StoredManualNewsItem } from '../storage/standbyStorage'; // Import StoredManualNewsItem
+import NewsCard from '../components/NewsCard'; // Re-import NewsCard
 
-// Helper function to format time
+// Helper function to format time (remains the same)
 const formatTime = (timeInSeconds: number): string => {
   if (timeInSeconds <= 0) return '00:00:00';
   const hours = Math.floor(timeInSeconds / 3600);
@@ -135,20 +135,14 @@ const DetailScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section (65%) - Conditionally display News or Placeholder */}
-      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden flex items-center justify-center">
-        {screenData.newsCategory ? (
-          // Placeholder for News Content
-          <div className="text-center text-gray-600">
-            <h3 className="text-xl font-semibold mb-2">News Section</h3>
-            <p>News related to category: <span className="font-medium">{screenData.newsCategory}</span></p>
-            <p className="text-sm mt-1">(News fetching and display to be implemented)</p>
-            {/* Later, replace this div with actual news fetching and <NewsCard /> rendering */}
-          </div>
+      {/* Bottom Section (65%) - News Carousel */}
+      <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden">
+        {screenData.newsItems && screenData.newsItems.length > 0 ? (
+          <NewsCarousel newsItems={screenData.newsItems} />
         ) : (
-          // Placeholder if no news category is selected
-          <div className="text-center text-gray-500">
-            <p>No news configured for this screen.</p>
+          // Display message if no news items exist
+          <div className="h-full flex items-center justify-center text-center text-gray-500">
+            <p>No news items added for this screen.</p>
           </div>
         )}
       </div>
@@ -156,6 +150,53 @@ const DetailScreen: React.FC = () => {
   );
 };
 
-// Removed NewsCarousel component and sample data
+// --- News Carousel Component ---
+interface NewsCarouselProps {
+  newsItems: StoredManualNewsItem[];
+}
+
+const NewsCarousel: React.FC<NewsCarouselProps> = ({ newsItems }) => {
+  const settings = {
+    dots: true,
+    infinite: newsItems.length > 1, // Only loop if more than one item
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 7000, // Slide duration 7 seconds
+    pauseOnHover: true,
+    arrows: false,
+    className: "h-full",
+  };
+
+  // Helper to format ISO date string
+  const formatDate = (isoString: string): string => {
+    try {
+      return new Date(isoString).toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+    } catch (e) {
+      return "Invalid Date";
+    }
+  };
+
+  return (
+    <div className="h-full w-[90%] mx-auto"> {/* Center carousel */}
+      <Slider {...settings} className="h-full">
+        {newsItems.map((news) => (
+          <div key={news.id} className="p-2 h-full"> {/* Padding around card */}
+            <NewsCard
+              title={news.title}
+              content={news.content}
+              // Use createdAt for the date, formatted
+              date={formatDate(news.createdAt)}
+              tags={news.tags}
+            />
+          </div>
+        ))}
+      </Slider>
+    </div>
+  );
+};
 
 export default DetailScreen;
