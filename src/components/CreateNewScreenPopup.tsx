@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ManualNewsItemDetails } from '../storage/standbyStorage'; // Import the new type
-import { Plus, Trash2, Image as ImageIcon, Type as TextIcon } from 'lucide-react'; // Import icons
+import { ManualNewsItemDetails } from '../storage/standbyStorage';
+import { Plus, Trash2, Image as ImageIcon, Type as TextIcon, ArrowLeft, ArrowRight } from 'lucide-react'; // Import icons, add arrows
 
 interface CountdownDuration {
   hours: number;
@@ -24,8 +24,9 @@ interface CreateNewScreenPopupProps {
 }
 
 const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, onSubmit }) => {
-  const [title, setTitle] = useState(''); // Add title state back
-  const [welcomeMessage, setWelcomeMessage] = useState('Thank you for joining, please stay tuned!'); // Default welcome message
+  const [step, setStep] = useState(1); // Add step state, start at step 1
+  const [title, setTitle] = useState('');
+  const [welcomeMessage, setWelcomeMessage] = useState('Thank you for joining, please stay tuned!');
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(15); // Default to 15 minutes
   const [seconds, setSeconds] = useState(0);
@@ -55,7 +56,20 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
       backgroundColor,
       newsItems: newsItems, // Pass the array of news items
     });
-    // No need to call onClose here, the parent component's handleSubmit will do it
+    // This function is now only called at the end (Step 2)
+  };
+
+  const handleNext = () => {
+    // Basic validation for step 1 fields before proceeding
+    if (!title || !category) {
+        alert('Please fill in the Title and Category fields.');
+        return;
+    }
+    setStep(2);
+  };
+
+  const handleBack = () => {
+    setStep(1);
   };
 
   // Function to add the current news item details to the list
@@ -87,208 +101,270 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Create New Standby Screen</h2>
-        <form onSubmit={handleSubmit}>
-          {/* Title */}
-          <div className="mb-4">
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title (for list view)</label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              required
-            />
-          </div>
-
-          {/* Welcome Message */}
-          <div className="mb-4">
-            <label htmlFor="welcomeMessage" className="block text-sm font-medium text-gray-700">Welcome Message (for detail view)</label>
-            <textarea
-              id="welcomeMessage"
-              value={welcomeMessage}
-              onChange={(e) => setWelcomeMessage(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              rows={3}
-              required
-            />
-          </div>
-
-          {/* Countdown Duration */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Countdown Duration</label>
-            <div className="mt-1 grid grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="hours" className="block text-xs text-gray-500">Hours</label>
+      {/* Increase max-w-lg for slightly more space if needed */}
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 className="text-xl font-semibold mb-4">Create New Standby Screen - Step {step} of 2</h2>
+        {/* Use a standard form tag, but handle submission logic based on step */}
+        <form onSubmit={(e) => {
+            // Prevent default form submission only if not on the final step
+            if (step !== 2) {
+                e.preventDefault();
+            } else {
+                handleSubmit(e); // Call the original submit handler on the final step
+            }
+        }}>
+          {/* Step 1: Metadata */}
+          {step === 1 && (
+            <>
+              {/* Title */}
+              <div className="mb-4">
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title (for list view)</label>
                 <input
-                  id="hours"
-                  type="number"
-                  min="0"
-                  value={hours}
-                  onChange={(e) => setHours(parseInt(e.target.value, 10))}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
                 />
               </div>
-              <div>
-                <label htmlFor="minutes" className="block text-xs text-gray-500">Minutes</label>
-                <input
-                  id="minutes"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={minutes}
-                  onChange={(e) => setMinutes(parseInt(e.target.value, 10))}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+
+              {/* Welcome Message */}
+              <div className="mb-4">
+                <label htmlFor="welcomeMessage" className="block text-sm font-medium text-gray-700">Welcome Message (for detail view)</label>
+                <textarea
+                  id="welcomeMessage"
+                  value={welcomeMessage}
+                  onChange={(e) => setWelcomeMessage(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  rows={3}
+                  required
                 />
               </div>
-              <div>
-                <label htmlFor="seconds" className="block text-xs text-gray-500">Seconds</label>
+
+              {/* Countdown Duration */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Countdown Duration</label>
+                <div className="mt-1 grid grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="hours" className="block text-xs text-gray-500">Hours</label>
+                    <input
+                      id="hours"
+                      type="number"
+                      min="0"
+                      value={hours}
+                      onChange={(e) => setHours(parseInt(e.target.value, 10))}
+                      className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="minutes" className="block text-xs text-gray-500">Minutes</label>
+                    <input
+                      id="minutes"
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={minutes}
+                      onChange={(e) => setMinutes(parseInt(e.target.value, 10))}
+                      className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="seconds" className="block text-xs text-gray-500">Seconds</label>
+                    <input
+                      id="seconds"
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={seconds}
+                      onChange={(e) => setSeconds(parseInt(e.target.value, 10))}
+                      className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="mb-4">
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
                 <input
-                  id="seconds"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={seconds}
-                  onChange={(e) => setSeconds(parseInt(e.target.value, 10))}
-                  className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  id="category"
+                  type="text"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Category */}
-          <div className="mb-4">
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-            <input
-              id="category"
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              required
-            />
-          </div>
+               {/* Background Color */}
+                <div className="mb-4">
+                    <label htmlFor="backgroundColor" className="block text-sm font-medium text-gray-700">Background Color</label>
+                    <div className="mt-1 flex items-center">
+                    <input
+                        id="backgroundColor"
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="h-10 w-10 p-0 border-gray-300 rounded-md cursor-pointer"
+                    />
+                    <input
+                        type="text"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="ml-2 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        placeholder="#rrggbb"
+                    />
+                    </div>
+                </div>
+            </>
+          )}
 
-          {/* --- News Items Section --- */}
-          <div className="mb-6 border-t border-gray-200 pt-4">
-            <h3 className="text-lg font-medium text-gray-800 mb-3">Add News Items (Optional)</h3>
+          {/* Step 2: News Items */}
+          {step === 2 && (
+            <>
+              {/* --- News Items Section --- */}
+              <div className="mb-6 border-t border-gray-200 pt-4">
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Add News Items (Optional)</h3>
 
-            {/* List of Added News Items */}
-            {newsItems.length > 0 && (
-              <div className="mb-4 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
-                <ul className="space-y-2">
-                  {newsItems.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center text-sm p-1 bg-white rounded shadow-sm">
-                      <span className="truncate flex-1 mr-2">{item.title} ({item.content.type})</span>
-                      <button
+                {/* List of Added News Items */}
+                {newsItems.length > 0 && (
+                  <div className="mb-4 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
+                    <ul className="space-y-2">
+                      {newsItems.map((item, index) => (
+                        <li key={index} className="flex justify-between items-center text-sm p-1 bg-white rounded shadow-sm">
+                          <span className="truncate flex-1 mr-2">{item.title} ({item.content.type})</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveNewsItem(index)}
+                            className="p-1 text-red-500 hover:text-red-700"
+                            title="Remove Item"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Sub-form for adding a new news item */}
+                <div className="space-y-3 border border-gray-300 rounded-md p-3">
+                  <h4 className="text-md font-medium text-gray-700">New News Item</h4>
+                  <div>
+                    <label htmlFor="newsTitle" className="block text-sm font-medium text-gray-700">News Title</label>
+                    <input
+                      id="newsTitle"
+                      type="text"
+                      value={currentNewsTitle}
+                      onChange={(e) => setCurrentNewsTitle(e.target.value)}
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Content Type</label>
+                    <div className="mt-1 flex items-center space-x-4">
+                        <button
                         type="button"
-                        onClick={() => handleRemoveNewsItem(index)}
-                        className="p-1 text-red-500 hover:text-red-700"
-                        title="Remove Item"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                        onClick={() => setCurrentNewsContentType('text')}
+                        className={`p-2 rounded border ${currentNewsContentType === 'text' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                        >
+                        <TextIcon size={18} />
+                        </button>
+                        <button
+                        type="button"
+                        onClick={() => setCurrentNewsContentType('image')}
+                        className={`p-2 rounded border ${currentNewsContentType === 'image' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                        >
+                        <ImageIcon size={18} />
+                        </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
+                      {currentNewsContentType === 'text' ? 'News Content (Text)' : 'News Content (Image URL)'}
+                    </label>
+                    <input
+                      id="newsContent"
+                      type={currentNewsContentType === 'text' ? 'text' : 'url'}
+                      value={currentNewsContentValue}
+                      onChange={(e) => setCurrentNewsContentValue(e.target.value)}
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                      placeholder={currentNewsContentType === 'text' ? 'Enter news text...' : 'https://example.com/image.png'}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="newsTags" className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+                    <input
+                      id="newsTags"
+                      type="text"
+                      value={currentNewsTags}
+                      onChange={(e) => setCurrentNewsTags(e.target.value)}
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                      placeholder="e.g., Update, Product, Important"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddNewsItem}
+                    className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <Plus size={18} className="mr-1 -ml-1" />
+                    Add News Item to List
+                  </button>
+                </div>
               </div>
-            )}
+              {/* --- End News Items Section --- */}
+            </>
+          )}
 
-            {/* Sub-form for adding a new news item */}
-            <div className="space-y-3 border border-gray-300 rounded-md p-3">
-              <h4 className="text-md font-medium text-gray-700">New News Item</h4>
-              <div>
-                <label htmlFor="newsTitle" className="block text-sm font-medium text-gray-700">News Title</label>
-                <input
-                  id="newsTitle"
-                  type="text"
-                  value={currentNewsTitle}
-                  onChange={(e) => setCurrentNewsTitle(e.target.value)}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
-                />
-              </div>
-              <div>
-                 <label className="block text-sm font-medium text-gray-700">Content Type</label>
-                 <div className="mt-1 flex items-center space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentNewsContentType('text')}
-                      className={`p-2 rounded border ${currentNewsContentType === 'text' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      <TextIcon size={18} />
-                    </button>
-                     <button
-                      type="button"
-                      onClick={() => setCurrentNewsContentType('image')}
-                      className={`p-2 rounded border ${currentNewsContentType === 'image' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      <ImageIcon size={18} />
-                    </button>
-                 </div>
-              </div>
-              <div>
-                <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
-                  {currentNewsContentType === 'text' ? 'News Content (Text)' : 'News Content (Image URL)'}
-                </label>
-                <input
-                  id="newsContent"
-                  type={currentNewsContentType === 'text' ? 'text' : 'url'}
-                  value={currentNewsContentValue}
-                  onChange={(e) => setCurrentNewsContentValue(e.target.value)}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
-                  placeholder={currentNewsContentType === 'text' ? 'Enter news text...' : 'https://example.com/image.png'}
-                />
-              </div>
-               <div>
-                <label htmlFor="newsTags" className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
-                <input
-                  id="newsTags"
-                  type="text"
-                  value={currentNewsTags}
-                  onChange={(e) => setCurrentNewsTags(e.target.value)}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
-                  placeholder="e.g., Update, Product, Important"
-                />
-              </div>
-              <button
+
+          {/* Buttons: Conditionally render based on step */}
+          <div className="flex justify-between pt-4 border-t border-gray-200 mt-6">
+            {/* Cancel Button (Always visible) */}
+            <button
                 type="button"
-                onClick={handleAddNewsItem}
-                className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <Plus size={18} className="mr-1 -ml-1" />
-                Add News Item to List
-              </button>
-            </div>
-          </div>
-          {/* --- End News Items Section --- */}
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+                Cancel
+            </button>
 
-          {/* Background Color */}
-          <div className="mb-4">
-            <label htmlFor="backgroundColor" className="block text-sm font-medium text-gray-700">Background Color</label>
-            <div className="mt-1 flex items-center">
-              <input
-                id="backgroundColor"
-                type="color"
-                value={backgroundColor}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-                className="h-10 w-10 p-0 border-gray-300 rounded-md cursor-pointer"
-              />
-              <input
-                type="text"
-                value={backgroundColor}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-                className="ml-2 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="#rrggbb"
-              />
-            </div>
-          </div>
+            <div className="flex space-x-2">
+                {/* Back Button (Visible on Step 2) */}
+                {step === 2 && (
+                    <button
+                        type="button"
+                        onClick={handleBack}
+                        className="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    >
+                         <ArrowLeft size={18} className="mr-1 -ml-1" />
+                        Back
+                    </button>
+                )}
 
-          {/* Buttons */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <button type="button" onClick={onClose} className="mr-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                {/* Next Button (Visible on Step 1) */}
+                {step === 1 && (
+                    <button
+                        type="button" // Change type to button to prevent form submission
+                        onClick={handleNext}
+                        className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        Next
+                        <ArrowRight size={18} className="ml-1 -mr-1" />
+                    </button>
+                )}
+
+                {/* Submit Button (Visible on Step 2) */}
+                {step === 2 && (
+                    <button
+                        type="submit" // This button triggers the form's onSubmit
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        Submit
+                    </button>
+                )}
+            </div>
           </div>
         </form>
       </div>
