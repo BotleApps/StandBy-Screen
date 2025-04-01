@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'; // Import useEffect
 import CreateNewScreenPopup from '../components/CreateNewScreenPopup';
 import StandbyCard from '../components/StandbyCard';
-import { PlusCircle, Tv, MonitorPlay } from 'lucide-react';
-// Import storage functions including clear and the stored type
-import { getStandbyScreens, addStandbyScreen, StoredStandbyScreen, clearStandbyScreens } from '../storage/standbyStorage';
-
-// Interface for the data submitted from the popup (matching CreateNewScreenPopup)
+ import { PlusCircle, Tv, MonitorPlay } from 'lucide-react';
+ // Import storage functions including delete
+ import { getStandbyScreens, addStandbyScreen, deleteStandbyScreen, StoredStandbyScreen, clearStandbyScreens } from '../storage/standbyStorage';
+ 
+ // Interface for the data submitted from the popup (matching CreateNewScreenPopup)
 interface StandbyScreenSubmitDetails {
   title: string; // Add title back
   welcomeMessage: string;
@@ -31,13 +31,23 @@ const HomeScreen: React.FC = () => {
   const handleSubmit = (details: StandbyScreenSubmitDetails) => {
     const updatedScreens = addStandbyScreen(details);
     setScreens(updatedScreens); // Update state with the new list from storage
-    console.log('New Standby Screen added:', details);
-    handleClosePopup(); // Close popup after submission
-  };
-
-  return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-100">
+      console.log('New Standby Screen added:', details);
+      handleClosePopup(); // Close popup after submission
+    };
+  
+   // Function to handle deleting a screen
+   const handleDeleteScreen = (id: string) => {
+     // Add confirmation dialog
+     if (window.confirm('Are you sure you want to delete this standby screen? This action cannot be undone.')) {
+       const updatedScreens = deleteStandbyScreen(id);
+       setScreens(updatedScreens); // Update state with the list returned from storage function
+       console.log(`Standby Screen deleted: ${id}`);
+     }
+   };
+ 
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-100">
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div className="flex items-center">
@@ -67,10 +77,11 @@ const HomeScreen: React.FC = () => {
                   id={screen.id}
                   title={screen.title} // Add title prop back
                   countdownDuration={screen.countdownDuration}
-                  category={screen.category}
-                  backgroundColor={screen.backgroundColor}
-                />
-              ))}
+                   category={screen.category}
+                   backgroundColor={screen.backgroundColor}
+                   onDelete={handleDeleteScreen} // Pass delete handler
+                 />
+               ))}
             </div>
           ) : (
             // Empty state

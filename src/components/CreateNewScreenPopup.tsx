@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import ReactQuill from 'react-quill'; // Import ReactQuill
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import { ManualNewsItemDetails } from '../storage/standbyStorage';
-import { Plus, Trash2, Image as ImageIcon, Type as TextIcon, ArrowLeft, ArrowRight } from 'lucide-react'; // Import icons, add arrows
+import { Plus, Trash2, Image as ImageIcon, Type as TextIcon, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface CountdownDuration {
   hours: number;
@@ -276,24 +278,47 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
                         onClick={() => setCurrentNewsContentType('image')}
                         className={`p-2 rounded border ${currentNewsContentType === 'image' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'}`}
                         >
-                        <ImageIcon size={18} />
-                        </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
-                      {currentNewsContentType === 'text' ? 'News Content (Text)' : 'News Content (Image URL)'}
-                    </label>
-                    <input
-                      id="newsContent"
-                      type={currentNewsContentType === 'text' ? 'text' : 'url'}
+                     <ImageIcon size={18} />
+                    </button>
+                 </div>
+              </div>
+              {/* Content Input: Conditionally render Quill or standard input */}
+              <div>
+                <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
+                  {currentNewsContentType === 'text' ? 'News Content (Rich Text)' : 'News Content (Image URL)'}
+                </label>
+                {currentNewsContentType === 'text' ? (
+                  // Wrap Quill editor in a div to control height and overflow
+                  <div className="mt-1 quill-editor-container h-24 overflow-y-auto border border-gray-300 rounded-md">
+                    <ReactQuill
+                      theme="snow" // Use the "snow" theme for a standard toolbar
                       value={currentNewsContentValue}
-                      onChange={(e) => setCurrentNewsContentValue(e.target.value)}
-                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
-                      placeholder={currentNewsContentType === 'text' ? 'Enter news text...' : 'https://example.com/image.png'}
+                      onChange={setCurrentNewsContentValue} // Directly pass the setter
+                      className="bg-white h-full" // Make Quill fill the container, remove border from Quill itself
+                      modules={{ // Optional: Configure toolbar options
+                        toolbar: [
+                          [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{'list': 'ordered'}, {'list': 'bullet'}],
+                        ['link'], // Keep it simple for now
+                        ['clean']
+                        ],
+                      }}
+                      style={{ border: 'none' }} // Remove default Quill border as the wrapper has one
                     />
                   </div>
-                  <div>
+                ) : (
+                  <input
+                    id="newsContent"
+                    type="url"
+                    value={currentNewsContentValue}
+                    onChange={(e) => setCurrentNewsContentValue(e.target.value)}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                    placeholder="https://example.com/image.png"
+                  />
+                )}
+              </div>
+               <div className="mt-4"> {/* Add margin-top if using Quill */}
                     <label htmlFor="newsTags" className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
                     <input
                       id="newsTags"

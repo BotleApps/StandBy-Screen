@@ -12,13 +12,14 @@ interface StandbyCardProps {
   id: string;
   title: string; // Add title prop back
   countdownDuration: CountdownDuration; // Duration for the countdown timer
-  category: string; // Category for the standby screen
-  backgroundColor: string; // Background color for the card placeholder
-}
-
-// Add title back to destructuring props
-const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration, category, backgroundColor }) => {
-  const navigate = useNavigate(); // Get navigate function
+   category: string;
+   backgroundColor: string;
+   onDelete: (id: string) => void; // Add onDelete prop
+ }
+ 
+ // Add title and onDelete back to destructuring props
+ const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration, category, backgroundColor, onDelete }) => {
+   const navigate = useNavigate();
 
   // Format duration for display (optional, could just show category)
   const formatDuration = (duration: CountdownDuration | undefined) => {
@@ -76,12 +77,12 @@ const StandbyCard: React.FC<StandbyCardProps> = ({ id, title, countdownDuration,
               <Settings size={18} />
             </button>
              <button
-              className="text-red-500 hover:text-red-700 transition-colors duration-200"
-              title="Delete"
-              onClick={() => console.log(`Delete screen ${id}`)} // Replace with actual action
-            >
-              <Trash2 size={18} />
-            </button>
+               className="text-red-500 hover:text-red-700 transition-colors duration-200"
+               title="Delete"
+               onClick={() => onDelete(id)} // Call onDelete handler passed from HomeScreen
+             >
+               <Trash2 size={18} />
+             </button>
           </div>
         </div>
       </div>
