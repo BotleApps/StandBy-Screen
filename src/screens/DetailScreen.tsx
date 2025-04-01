@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Slider from 'react-slick';
-import { ArrowLeft, Maximize, Minimize, AlertCircle } from 'lucide-react';
-import { getStandbyScreenById, StoredStandbyScreen, StoredManualNewsItem } from '../storage/standbyStorage'; // Import StoredManualNewsItem
-import NewsCard from '../components/NewsCard'; // Re-import NewsCard
+import { ArrowLeft, Maximize, Minimize, AlertCircle, RefreshCw } from 'lucide-react'; // Add RefreshCw
+import { getStandbyScreenById, StoredStandbyScreen, StoredManualNewsItem } from '../storage/standbyStorage';
+import NewsCard from '../components/NewsCard';
 
-// Helper function to format time (remains the same)
+// Helper function to format time
 const formatTime = (timeInSeconds: number): string => {
   if (timeInSeconds <= 0) return '00:00:00';
   const hours = Math.floor(timeInSeconds / 3600);
@@ -16,42 +16,47 @@ const formatTime = (timeInSeconds: number): string => {
 
 const DetailScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { screenId } = useParams<{ screenId: string }>(); // Get screenId from URL params
-  const [screenData, setScreenData] = useState<StoredStandbyScreen | null | undefined>(undefined); // undefined: loading, null: not found
+  const { screenId } = useParams<{ screenId: string }>();
+  const [screenData, setScreenData] = useState<StoredStandbyScreen | null | undefined>(undefined);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(!!document.fullscreenElement);
+  const [isHoveringTimer, setIsHoveringTimer] = useState<boolean>(false); // State for hover
 
-  // Effect to fetch screen data based on screenId
+  // Effect to fetch screen data
   useEffect(() => {
     if (screenId) {
       const data = getStandbyScreenById(screenId);
-      setScreenData(data); // Set to data or null if not found
+      setScreenData(data);
       if (data) {
-        // Calculate initial time left in seconds
         const initialSeconds = (data.countdownDuration.hours * 3600) +
                                (data.countdownDuration.minutes * 60) +
                                data.countdownDuration.seconds;
         setTimeLeft(initialSeconds);
       } else {
-        setTimeLeft(0); // Reset timer if screen not found
+        setTimeLeft(0);
       }
     } else {
-      setScreenData(null); // No ID provided, set to not found
+      setScreenData(null);
       setTimeLeft(0);
     }
   }, [screenId]);
 
   // Effect for the countdown timer
   useEffect(() => {
-    if (timeLeft <= 0) return; // Don't start interval if time is already 0
-
+    // No need to check timeLeft > 0 here, interval clears when it hits 0 anyway
     const timerId = setInterval(() => {
-      setTimeLeft((prevTime) => Math.max(0, prevTime - 1));
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(timerId); // Clear interval when reaching 0
+          return 0;
+        }
+        return prevTime - 1;
+      });
     }, 1000);
 
-    // Cleanup interval on component unmount or when timer reaches 0
+    // Cleanup interval
     return () => clearInterval(timerId);
-  }, [timeLeft]); // Rerun effect only when timeLeft changes
+  }, [timeLeft]); // Re-run effect if timeLeft is reset externally
 
   // Fullscreen handling
   const toggleFullScreen = () => {
@@ -72,6 +77,11 @@ const DetailScreen: React.FC = () => {
     document.addEventListener('fullscreenchange', handleFullScreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, []);
+
+  // Function to reset timer
+  const handleResetTimer = (seconds: number) => {
+    setTimeLeft(seconds);
+  };
 
   // Loading state
   if (screenData === undefined) {
@@ -95,11 +105,10 @@ const DetailScreen: React.FC = () => {
     );
   }
 
-  // Main content when data is loaded
+  // Main content
   return (
-    // Restore original main div without dynamic background
     <div className="flex flex-col h-screen relative">
-      {/* Back Button (remains the same) */}
+      {/* Back Button */}
       <button
         onClick={() => navigate('/')}
         className="absolute top-4 left-4 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
@@ -108,7 +117,7 @@ const DetailScreen: React.FC = () => {
         <ArrowLeft size={24} />
       </button>
 
-      {/* Full Screen Button (remains the same) */}
+      {/* Full Screen Button */}
       <button
         onClick={toggleFullScreen}
         className="absolute top-4 right-4 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
@@ -117,30 +126,60 @@ const DetailScreen: React.FC = () => {
         {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
       </button>
 
-      {/* Top Section (35%) - Restore original structure */}
+      {/* Top Section */}
       <div className="basis-0 grow-[7] flex flex-col items-center justify-center bg-gray-100 p-4 pt-16">
         {/* Welcome Message */}
         <div className="mb-10 text-center">
-          {/* Display fetched welcome message */}
           <h1 className="text-3xl font-semibold text-gray-800">{screenData.welcomeMessage || 'Session Starting Soon'}</h1>
-           {/* Category display removed */}
         </div>
-        {/* Countdown Timer */}
-        <div className="text-center">
+
+        {/* Countdown Timer Area (with hover effect) */}
+        <div
+          className="text-center relative group" // Added relative and group
+          onMouseEnter={() => setIsHoveringTimer(true)}
+          onMouseLeave={() => setIsHoveringTimer(false)}
+        >
           <p className="text-xl mb-3 text-gray-600">We will start in</p>
-          <div className="text-8xl font-bold tabular-nums text-gray-900">
-            {/* Use timeLeft state derived from fetched data */}
+          <div className="text-8xl font-bold tabular-nums text-gray-900 mb-2"> {/* Added margin-bottom */}
             {formatTime(timeLeft)}
+          </div>
+
+          {/* Reset Buttons - Appear on hover */}
+          <div
+            className={`absolute bottom-[-40px] left-0 right-0 flex justify-center space-x-2 transition-all duration-300 ease-in-out ${
+              isHoveringTimer ? 'opacity-100 visible' : 'opacity-0 invisible'
+            }`} // Conditional visibility and positioning
+          >
+            <button
+              onClick={() => handleResetTimer(60)} // 1 min
+              className="px-3 py-1 bg-indigo-500 text-white text-xs font-medium rounded hover:bg-indigo-600 transition-colors flex items-center"
+              title="Reset to 1 minute"
+            >
+              <RefreshCw size={12} className="mr-1"/> 1m
+            </button>
+            <button
+              onClick={() => handleResetTimer(120)} // 2 min
+              className="px-3 py-1 bg-indigo-500 text-white text-xs font-medium rounded hover:bg-indigo-600 transition-colors flex items-center"
+              title="Reset to 2 minutes"
+            >
+               <RefreshCw size={12} className="mr-1"/> 2m
+            </button>
+            <button
+              onClick={() => handleResetTimer(300)} // 5 min
+              className="px-3 py-1 bg-indigo-500 text-white text-xs font-medium rounded hover:bg-indigo-600 transition-colors flex items-center"
+              title="Reset to 5 minutes"
+            >
+               <RefreshCw size={12} className="mr-1"/> 5m
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section (65%) - News Carousel */}
+      {/* Bottom Section - News Carousel */}
       <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden">
         {screenData.newsItems && screenData.newsItems.length > 0 ? (
           <NewsCarousel newsItems={screenData.newsItems} />
         ) : (
-          // Display message if no news items exist
           <div className="h-full flex items-center justify-center text-center text-gray-500">
             <p>No news items added for this screen.</p>
           </div>
@@ -158,18 +197,17 @@ interface NewsCarouselProps {
 const NewsCarousel: React.FC<NewsCarouselProps> = ({ newsItems }) => {
   const settings = {
     dots: true,
-    infinite: newsItems.length > 1, // Only loop if more than one item
+    infinite: newsItems.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 7000, // Slide duration 7 seconds
+    autoplaySpeed: 7000,
     pauseOnHover: true,
     arrows: false,
     className: "h-full",
   };
 
-  // Helper to format ISO date string
   const formatDate = (isoString: string): string => {
     try {
       return new Date(isoString).toLocaleDateString(undefined, {
@@ -181,14 +219,13 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ newsItems }) => {
   };
 
   return (
-    <div className="h-full w-[90%] mx-auto"> {/* Center carousel */}
+    <div className="h-full w-[90%] mx-auto">
       <Slider {...settings} className="h-full">
         {newsItems.map((news) => (
-          <div key={news.id} className="p-2 h-full"> {/* Padding around card */}
+          <div key={news.id} className="p-2 h-full">
             <NewsCard
               title={news.title}
               content={news.content}
-              // Use createdAt for the date, formatted
               date={formatDate(news.createdAt)}
               tags={news.tags}
             />
