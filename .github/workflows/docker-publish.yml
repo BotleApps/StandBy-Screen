@@ -23,8 +23,8 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          docker build -t ghcr.io/botle/standby-screen:latest .
+          docker build -t ghcr.io/botleapps/standby-screen:latest .
 
       - name: Push the Docker image
         run: |
-          docker push ghcr.io/botle/standby-screen:latest
+          docker push ghcr.io/botleapps/standby-screen:latest
