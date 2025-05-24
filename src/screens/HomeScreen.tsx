@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState } from 'react';
 import CreateNewScreenPopup from '../components/CreateNewScreenPopup';
 import StandbyCard from '../components/StandbyCard';
+import StandbySettingsDialog from '../components/StandbySettingsDailog';
  import { PlusCircle, Tv, MonitorPlay } from 'lucide-react';
- // Import storage functions including delete
- import { getStandbyScreens, addStandbyScreen, deleteStandbyScreen, StoredStandbyScreen, clearStandbyScreens } from '../storage/standbyStorage';
+ // Import storage functions including delete and update
+ import { getStandbyScreens, addStandbyScreen, deleteStandbyScreen, updateStandbyScreen, StoredStandbyScreen } from '../storage/standbyStorage';
  
  // Interface for the data submitted from the popup (matching CreateNewScreenPopup)
 interface StandbyScreenSubmitDetails {
@@ -18,6 +19,10 @@ const HomeScreen: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   // Initialize state from localStorage
   const [screens, setScreens] = useState<StoredStandbyScreen[]>(() => getStandbyScreens());
+  
+  // State for managing settings dialog
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedScreenForSettings, setSelectedScreenForSettings] = useState<StoredStandbyScreen | null>(null);
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -43,6 +48,28 @@ const HomeScreen: React.FC = () => {
        setScreens(updatedScreens); // Update state with the list returned from storage function
        console.log(`Standby Screen deleted: ${id}`);
      }
+   };
+
+   // Function to handle opening settings dialog
+   const handleOpenSettings = (screenId: string) => {
+     const screen = screens.find(s => s.id === screenId);
+     if (screen) {
+       setSelectedScreenForSettings(screen);
+       setIsSettingsOpen(true);
+     }
+   };
+
+   // Function to handle closing settings dialog
+   const handleCloseSettings = () => {
+     setIsSettingsOpen(false);
+     setSelectedScreenForSettings(null);
+   };
+
+   // Function to handle saving settings
+   const handleSaveSettings = (updatedScreen: StoredStandbyScreen) => {
+     const updatedScreens = updateStandbyScreen(updatedScreen);
+     setScreens(updatedScreens);
+     console.log('Standby Screen updated:', updatedScreen);
    };
  
     return (
@@ -80,6 +107,7 @@ const HomeScreen: React.FC = () => {
                    category={screen.category}
                    backgroundColor={screen.backgroundColor}
                    onDelete={handleDeleteScreen} // Pass delete handler
+                   onSettings={handleOpenSettings} // Pass settings handler
                  />
                ))}
             </div>
@@ -107,6 +135,16 @@ const HomeScreen: React.FC = () => {
 
       {/* Conditionally render the popup */}
       {isPopupOpen && <CreateNewScreenPopup onClose={handleClosePopup} onSubmit={handleSubmit} />}
+      
+      {/* Conditionally render the settings dialog */}
+      {isSettingsOpen && selectedScreenForSettings && (
+        <StandbySettingsDialog
+          standby_screen={selectedScreenForSettings}
+          standby_isOpen={isSettingsOpen}
+          standby_onClose={handleCloseSettings}
+          standby_onSave={handleSaveSettings}
+        />
+      )}
     </>
   );
 };

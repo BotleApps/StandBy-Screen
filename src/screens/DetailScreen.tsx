@@ -175,7 +175,7 @@ const DetailScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section - News Carousel */}
+      {/* Bottom Section -  Carousel */}
       <div className="basis-0 grow-[13] bg-gray-200 p-4 overflow-hidden">
         {screenData.newsItems && screenData.newsItems.length > 0 ? (
           <NewsCarousel newsItems={screenData.newsItems} />
@@ -189,7 +189,7 @@ const DetailScreen: React.FC = () => {
   );
 };
 
-// --- News Carousel Component ---
+// ---  Carousel Component ---
 interface NewsCarouselProps {
   newsItems: StoredManualNewsItem[];
 }

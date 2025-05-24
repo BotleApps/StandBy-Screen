@@ -126,4 +126,15 @@ export const clearStandbyScreens = (): void => {
     }
 };
 
-// Optional: Add updateStandbyScreen function if needed later
+/**
+ * Updates a standby screen in localStorage by its ID.
+ * Returns the updated list of screens.
+ */
+export const updateStandbyScreen = (updatedScreen: StoredStandbyScreen): StoredStandbyScreen[] => {
+    const screens = getStandbyScreens();
+    const updatedScreens = screens.map(screen => 
+        screen.id === updatedScreen.id ? updatedScreen : screen
+    );
+    saveStandbyScreens(updatedScreens);
+    return updatedScreens;
+};

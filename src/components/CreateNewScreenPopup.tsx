@@ -222,14 +222,14 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
             </>
           )}
 
-          {/* Step 2: News Items */}
+          {/* Step 2: Carousel Items */}
           {step === 2 && (
             <>
-              {/* --- News Items Section --- */}
+              {/* --- Carousel Items Section --- */}
               <div className="mb-6 border-t border-gray-200 pt-4">
-                <h3 className="text-lg font-medium text-gray-800 mb-3">Add News Items (Optional)</h3>
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Add Carousel Items (Optional)</h3>
 
-                {/* List of Added News Items */}
+                {/* List of Added Carousel Items */}
                 {newsItems.length > 0 && (
                   <div className="mb-4 max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
                     <ul className="space-y-2">
@@ -252,9 +252,9 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
 
                 {/* Sub-form for adding a new news item */}
                 <div className="space-y-3 border border-gray-300 rounded-md p-3">
-                  <h4 className="text-md font-medium text-gray-700">New News Item</h4>
+                  <h4 className="text-md font-medium text-gray-700">New Item</h4>
                   <div>
-                    <label htmlFor="newsTitle" className="block text-sm font-medium text-gray-700">News Title</label>
+                    <label htmlFor="newsTitle" className="block text-sm font-medium text-gray-700">Item Title</label>
                     <input
                       id="newsTitle"
                       type="text"
@@ -285,7 +285,7 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
               {/* Content Input: Conditionally render Quill or standard input */}
               <div>
                 <label htmlFor="newsContent" className="block text-sm font-medium text-gray-700">
-                  {currentNewsContentType === 'text' ? 'News Content (Rich Text)' : 'News Content (Image URL)'}
+                  {currentNewsContentType === 'text' ? 'Item Content (Rich Text)' : 'Item Content (Image URL)'}
                 </label>
                 {currentNewsContentType === 'text' ? (
                   // Wrap Quill editor in a div to control height and overflow
@@ -335,11 +335,11 @@ const CreateNewScreenPopup: React.FC<CreateNewScreenPopupProps> = ({ onClose, on
                     className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                   >
                     <Plus size={18} className="mr-1 -ml-1" />
-                    Add News Item to List
+                    Add Item to List
                   </button>
                 </div>
               </div>
-              {/* --- End News Items Section --- */}
+              {/* --- End Items Section --- */}
             </>
           )}
 
